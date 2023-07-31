@@ -1,8 +1,8 @@
-set(FACTORY "factory/worker/red_worker.c")
-set(STORAGE "storage/mailbox/finite_mailbox.c" "storage/circular_queue.c" "storage/priority_queue.c")
+add_subdirectory(factory)
 
-add_library(eggcrack ${FACTORY} ${STORAGE})
-target_include_directories(eggcrack PUBLIC "${CMAKE_SOURCE_DIR}/include")
+add_subdirectory(platform)
+if(${platform_macro} STREQUAL WINDOWS_PLATFORM)
+	target_link_libraries(eggcrack PRIVATE windows_internal)
+endif()
 
-target_compile_features(eggcrack PUBLIC c_std_17)
-set_target_properties(eggcrack PROPERTIES C_EXTENSIONS OFF)
+target_sources(eggcrack_executable PRIVATE main.c)
