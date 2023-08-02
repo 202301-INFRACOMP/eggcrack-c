@@ -4,26 +4,22 @@
 
 #include <factory/id_sequencer.h>
 
+#define THREAD_NUMBER 11
+
 void execute_singlethreaded()
 {
     id_sequencer *s = sequencer_create();
 
-    printf("%zd\n", sequencer_get_id(s));
-    printf("%zd\n", sequencer_get_id(s));
-    printf("%zd\n", sequencer_get_id(s));
-    printf("%zd\n", sequencer_get_id(s));
-    printf("%zd\n", sequencer_get_id(s));
-    printf("%zd\n", sequencer_get_id(s));
-    printf("%zd\n", sequencer_get_id(s));
-    printf("%zd\n", sequencer_get_id(s));
-    printf("%zd\n", sequencer_get_id(s));
-    printf("%zd\n", sequencer_get_id(s));
-    printf("%zd\n", sequencer_get_id(s));
+    const int printNumber = THREAD_NUMBER;
+    for (int i = 0; i < printNumber; ++i)
+    {
+        printf("%zd\n", sequencer_get_id(s));    
+    }
 
     sequencer_destroy(s);
 }
 
-#ifdef WINDOWS_PLATFORM
+#if defined WINDOWS_PLATFORM
 const char *platform = "WINDOWS";
 
 DWORD WINAPI get_id(LPVOID lpParam)
@@ -39,26 +35,23 @@ void execute_multithreaded()
 {
     id_sequencer *s = sequencer_create();
 
-    const int threadNumber = 11;
-    HANDLE threads[threadNumber];
+    HANDLE threads[THREAD_NUMBER];
 
     for (int i = 0; i < 11; ++i)
     {
         threads[i] = CreateThread(NULL, 0, get_id, s, 0, NULL);
     }
 
-    WaitForMultipleObjects(threadNumber, threads, TRUE, INFINITE);
+    WaitForMultipleObjects(THREAD_NUMBER, threads, TRUE, INFINITE);
 
-    for (int i = 0; i < threadNumber; ++i)
+    for (int i = 0; i < THREAD_NUMBER; ++i)
     {
         CloseHandle(threads[i]);
     }
 
     sequencer_destroy(s);
 }
-#endif
-
-#ifdef POSIX_PLATFORM
+#elif defined POSIX_PLATFORM
 const char *platform = "POSIX";
 
 void execute_multithreaded()

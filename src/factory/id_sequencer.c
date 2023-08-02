@@ -5,7 +5,7 @@
 
 #include <factory/id_sequencer.h>
 
-#ifdef WINDOWS_PLATFORM
+#if defined WINDOWS_PLATFORM
 
 typedef struct id_sequencer
 {
@@ -48,8 +48,6 @@ size_t sequencer_get_id(id_sequencer *s)
 
     return value;
 }
-#endif
-
-#ifdef POSIX_PLATFORM
+#elif defined POSIX_PLATFORM
 
 #endif

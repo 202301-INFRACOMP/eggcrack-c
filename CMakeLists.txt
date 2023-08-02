@@ -21,6 +21,9 @@ endif()
 include(CheckIPOSupported)
 check_ipo_supported(LANGUAGES C)
 
+SET(C_STANDARD C17)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 # library
 add_library(eggcrack STATIC)
 add_library(eggrack::library ALIAS eggcrack)
@@ -32,7 +35,6 @@ set_target_properties(eggcrack PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
 # executable
 add_executable(eggcrack_executable)
 target_link_libraries(eggcrack_executable PRIVATE eggrack::library)
-set_target_properties(eggcrack_executable PROPERTIES OUTPUT_NAME eggcrack)
 set_target_properties(eggcrack PROPERTIES 
     OUTPUT_NAME eggcrack
     INTERPROCEDURAL_OPTIMIZATION TRUE
