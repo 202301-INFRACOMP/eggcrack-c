@@ -1,11 +1,10 @@
-#include <windows_wrapper.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <factory/id_sequencer.h>
 
-#if defined WINDOWS_PLATFORM
+#ifdef WINDOWS_PLATFORM
+#include <windows_wrapper.h>
 
 typedef struct id_sequencer
 {
@@ -48,6 +47,41 @@ size_t sequencer_get_id(id_sequencer *s)
 
     return value;
 }
-#elif defined POSIX_PLATFORM
+#endif
+
+#ifdef POSIX_PLATFORM
+#include <pthread.h>
+typedef struct id_sequencer
+{
+    size_t id;
+    pthread_mutex_t mutex;
+} id_sequencer;
+
+    id_sequencer *
+    sequencer_create()
+{
+    id_sequencer *s = malloc(sizeof(id_sequencer));
+    if (s == NULL)
+    {
+        return NULL;
+    }
+    s->id = 0;
+    pthread_mutex_init(&s->mutex, NULL);
+    return s;
+}
+void sequencer_destroy(id_sequencer *s)
+{
+    pthread_mutex_destroy(&s->mutex);
+    free(s);
+}
+
+size_t sequencer_get_id(id_sequencer *s)
+{
+    pthread_mutex_lock(&s->mutex);
+    size_t value = s->id;
+    s->id++;
+    pthread_mutex_unlock(&s->mutex);
+    return value;
+}
 
 #endif

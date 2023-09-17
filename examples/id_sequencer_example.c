@@ -1,26 +1,32 @@
-#include <windows_wrapper.h>
 
 #include <stdio.h>
 
-#include <factory/id_sequencer.h>
+#include "../include/factory/id_sequencer.h"
 
-#define THREAD_NUMBER 11
-
+const char *platform;
 void execute_singlethreaded()
 {
     id_sequencer *s = sequencer_create();
 
-    const int printNumber = THREAD_NUMBER;
-    for (int i = 0; i < printNumber; ++i)
-    {
-        printf("%zd\n", sequencer_get_id(s));    
-    }
+    printf("%zd\n", sequencer_get_id(s));
+    printf("%zd\n", sequencer_get_id(s));
+    printf("%zd\n", sequencer_get_id(s));
+    printf("%zd\n", sequencer_get_id(s));
+    printf("%zd\n", sequencer_get_id(s));
+    printf("%zd\n", sequencer_get_id(s));
+    printf("%zd\n", sequencer_get_id(s));
+    printf("%zd\n", sequencer_get_id(s));
+    printf("%zd\n", sequencer_get_id(s));
+    printf("%zd\n", sequencer_get_id(s));
+    printf("%zd\n", sequencer_get_id(s));
 
     sequencer_destroy(s);
 }
 
-#if defined WINDOWS_PLATFORM
-const char *platform = "WINDOWS";
+#ifdef WINDOWS_PLATFORM
+#include <windows_wrapper.h>
+
+platform = "WINDOWS";
 
 DWORD WINAPI get_id(LPVOID lpParam)
 {
@@ -35,27 +41,57 @@ void execute_multithreaded()
 {
     id_sequencer *s = sequencer_create();
 
-    HANDLE threads[THREAD_NUMBER];
+    const int threadNumber = 11;
+    HANDLE threads[threadNumber];
 
     for (int i = 0; i < 11; ++i)
     {
         threads[i] = CreateThread(NULL, 0, get_id, s, 0, NULL);
     }
 
-    WaitForMultipleObjects(THREAD_NUMBER, threads, TRUE, INFINITE);
+    WaitForMultipleObjects(threadNumber, threads, TRUE, INFINITE);
 
-    for (int i = 0; i < THREAD_NUMBER; ++i)
+    for (int i = 0; i < threadNumber; ++i)
     {
         CloseHandle(threads[i]);
     }
 
     sequencer_destroy(s);
 }
-#elif defined POSIX_PLATFORM
-const char *platform = "POSIX";
+#endif
+
+#ifdef POSIX_PLATFORM
+#include <pthread.h>
+
+void *get_id(void *arg)
+{
+    id_sequencer *s = (id_sequencer *)arg;
+    printf("%zd\n", sequencer_get_id(s));
+    return NULL;
+}
 
 void execute_multithreaded()
 {
+    pthread_t threads[11];
+    id_sequencer *s = sequencer_create();
+
+    for (int i = 0; i < 11; ++i)
+    {
+        if (pthread_create(&threads[i], NULL, get_id, s) != 0)
+        {
+            fprintf(stderr, "Error creating thread %d\n", i);
+        }
+    }
+
+    for (int i = 0; i < 11; ++i)
+    {
+        if (pthread_join(threads[i], NULL) != 0)
+        {
+            fprintf(stderr, "Error joining thread %d\n", i);
+        }
+    }
+
+    sequencer_destroy(s);
 }
 #endif
 
